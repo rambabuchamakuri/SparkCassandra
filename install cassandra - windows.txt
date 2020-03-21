@@ -1,0 +1,60 @@
+http://cassandra.apache.org/doc/latest/getting_started/installing.html#installation-from-binary-tarball-files
+
+extract tar using winzip  apache-cassandra-3.11.4-bin.tar.gz to C:\Hadoop\Cassandra\apache-cassandra-3.11.4\
+
+prerequisite:  java and python should be installed in windows
+add python to system environment variable to PATH   as C:\Python27\
+
+//add java_home in cassandra.bat, nodetool.bat in C:\Hadoop\Cassandra\apache-cassandra-3.11.4\bin
+set JAVA_HOME=C:\Program Files\Java\jdk1.8.0_121
+
+cd C:\Hadoop\Cassandra\apache-cassandra-3.11.4\bin
+double click on "cassandra.bat" file, cassandra server starts 
+double click on cqlsh.sh for cassandra shell
+
+after open shell execute below commands 
+
+SELECT cluster_name, listen_address FROM system.local;
+
+DESCRIBE keyspaces;
+DESCRIBE tables;
+
+
+CREATE KEYSPACE prasanna WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 1};
+use prasanna;
+
+CREATE TABLE emp(emp_id int PRIMARY KEY, emp_name text ,emp_city text,emp_sal varint, emp_phone varint);
+
+INSERT INTO emp (emp_id, emp_name, emp_city, emp_phone, emp_sal) VALUES(1,'ram', 'Hyderabad', 9035749918, 50000);
+
+
+CREATE KEYSPACE prasanna1 WITH replication = {'class':'SimpleStrategy', 'replication_factor' : 1};
+use prasanna1;
+
+
+##############  Spark with Cassandra ##########
+https://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector_2.11/2.4.1
+
+spark-shell --jars /home/boilerad/rchamaku/cassandra/spark-cassandra-connector_2.11-2.4.1.jar,/home/boilerad/rchamaku/cassandra/jsr166e-1.1.0.jar
+
+####### Loading and analyzing data from Cassandra
+
+scala> import com.datastax.spark.connector._
+scala> import org.apache.spark.sql.cassandra._
+scala> val data = sc.cassandraTable("prasanna1", "emp")
+
+scala>  data.collect.foreach(println)
+CassandraRow{emp_id: 1, emp_city: Hyderabad, emp_name: ram, emp_phone: 9035749918, emp_sal: 50001}
+
+scala> data.first
+res4: com.datastax.spark.connector.CassandraRow = CassandraRow{emp_id: 1, emp_city: Hyderabad, emp_name: ram, emp_phone: 9035749918, emp_sal: 50001}
+
+########## Saving data from RDD to Cassandra
+
+scala> val collection = sc.parallelize(Seq((2,"Guntur", "rambabu",9035,90000), (3,"Kbvp", "yeswanth",90357,80000) ))
+scala> collection.saveToCassandra("prasanna1", "emp", SomeColumns("emp_id", "emp_city","emp_name","emp_phone","emp_sal"))
+
+
+
+
+
